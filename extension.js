@@ -10,10 +10,6 @@ const error = err => {
     vscode.window.showErrorMessage(err)
 }
 
-function toGBK (str) {
-    return iconv.decode(Buffer.from(str, binaryEncoding), encoding)
-}
-
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
@@ -36,20 +32,6 @@ function activate(context) {
             vscode.window.showInformationMessage('Must be a markdown file.')
             return
         }
-        // 获取到的是文件全路径
-        // let editorFilePath = doc.fileName
-        // var mdIdx = editorFilePath.lastIndexOf('\\')
-        // if (mdIdx == -1) {
-        //     mdIdx = editorFilePath.lastIndexOf('/')
-        //     if (mdIdx == -1) {
-        //         vscode.window.showInformationMessage('error path: ' + editorFilePath)
-        //         return
-        //     }
-        // }
-        var filename = doc.fileName.split(path.sep).pop()
-        // 最终的文件名(不带扩展后缀)
-        filename = filename.substring(0, filename.length - ".md".length);
-
         let localFolder = vscode.workspace.getConfiguration('pic2github').get('local_git_folder')
         let remoteRepo = vscode.workspace.getConfiguration('pic2github').get('remote_github_repo')
         let imagesFolder = vscode.workspace.getConfiguration('pic2github').get('images_folder')
@@ -57,6 +39,16 @@ function activate(context) {
             vscode.window.showInformationMessage('Please fill the configuration first.')
             return
         }
+
+        var filename = doc.fileName.split(path.sep).pop()
+        // 最终的文件名(不带扩展后缀)
+        filename = filename.substring(0, filename.length - ".md".length);
+
+        // 获取文件相对于 git 根目录的路径
+        let relativeGitRootPath = vscode.workspace.asRelativePath(doc.fileName, false);
+        // 去除文件的后缀
+        let relativeGitRootPathWithoutExt = relativeGitRootPath.substr(0, relativeGitRootPath.length - ".md".length);
+
         vscode.window.showOpenDialog({
             filters: { 'Images': ['png', 'jpg', 'gif', 'bmp'] }
         }).then(result => {
@@ -71,10 +63,12 @@ function activate(context) {
                     folderRoot = localFolder.substr(0, idx + 1);
                 }
 
+                // 图片要复制的指定图片目录的相对路径
                 let imagesPath = localFolder + path.sep + imagesFolder;
-                let fileNamedFolder = imagesPath + path.sep + filename
-                // 相对路径
-                let fileNamedRelativeFolder = imagesFolder + path.sep + filename
+                // 图片要复制的目标相对路径
+                let fileNamedFolder = imagesPath + path.sep + relativeGitRootPathWithoutExt
+                // 相对路径(不存在则创建)
+                let fileNamedRelativeFolder = imagesFolder + path.sep + relativeGitRootPathWithoutExt
                 let imageFileRelativePath = fileNamedRelativeFolder + path.sep + imgName;
                 // windows 上使用 xcopy 命令
                 let cmdStr = folderRoot + ' && ' +
@@ -90,18 +84,18 @@ function activate(context) {
                         console.log('wrong:' + iconv.decode(new Buffer(stderr, binaryEncoding), encoding))
                         
                         editor.edit(textEditorEdit => {
-                            textEditorEdit.insert(editor.selection.active, 'wrong: ' + iconv.decode(new Buffer(stderr, binaryEncoding), encoding) + ', cmdStr: ' + cmdStr)
+                            textEditorEdit.insert(editor.selection.active, 'wrong: ' +
+                                iconv.decode(new Buffer(stderr, binaryEncoding), encoding) + ', cmdStr: ' + cmdStr)
                         })
                     } else {
                         console.log(iconv.decode(new Buffer(stdout, binaryEncoding), encoding))
                     }
                 })
                 let imgUrl = '![' + imgName.substring(0, imgName.length - 4) + ']' +
-                    '(https://www.github.com/' + remoteRepo +'/raw/master/'+
-                    imagesFolder + '/' + filename + '/' + imgName + ')'
+                    '(https://www.github.com/' + remoteRepo +'/raw/master/' +
+                    imageFileRelativePath.replace(/\\/g,"\/") + ')'
                 editor.edit(textEditorEdit => {
                     textEditorEdit.insert(editor.selection.active, imgUrl)
-                    //textEditorEdit.insert(editor.selection.active, 'editorFilename: ' + filename)
                 })
             }
         }, error)
