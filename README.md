@@ -24,3 +24,6 @@
 比如 `local_git_folder` 配置为 `E:/git/github/blog`, `remote_github_repo` 配置为 `tom/blog`, `images_folder` 配置为 `images`, 在另外一个仓库 `E:/git/github/blog-article`, 在 `web/css` 目录下有一个名为 `hello.md` 的文件, 上传了一张 `world.png` 的图片, 那么最终图片被拷贝到本地的 `E:/git/github/blog/images/web/css/hello/world.png`, 上传到 github 仓库后的路径为 `https://www.github.com/tom/blog/raw/master/images/web/css/hello/world.png`.
 
 这样图片的存放位置和文章的存放目录可以保持一致.
+
+### 插件改造内容 V3
+进行 url 编码的时候只对空格进行了转义, 一般在使用的时候不会使用一些除了空格之外特殊的字符, 这样可以保留原始的中文.比如 `你好 哈哈.png` 被转义为 `你好%20哈哈.png`.主要自己看着觉得舒服一些.
