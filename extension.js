@@ -75,8 +75,8 @@ function activate(context) {
                     'cd ' + localFolder + ' && ' +
                     '(if not exist ' + fileNamedRelativeFolder + ' mkdir ' + fileNamedRelativeFolder + ') && ' +
                     'xcopy "' + fsPath + '" "' + fileNamedFolder + '" /y ' + ' && ' +
-                    'git add ' + imageFileRelativePath + ' && ' +
-                    'git commit -m ' + doc.fileName.split(path.sep).pop() + ' && ' +
+                    'git add "' + imageFileRelativePath + '" && ' +
+                    'git commit -m "' + doc.fileName.split(path.sep).pop() + '" && ' +
                     'git push'
                 console.log(cmdStr)
                 exec(cmdStr, { encoding: binaryEncoding }, function(err, stdout, stderr) {
@@ -91,9 +91,12 @@ function activate(context) {
                         console.log(iconv.decode(new Buffer(stdout, binaryEncoding), encoding))
                     }
                 })
+                // 将 \ 替换为 /, 并只对空格进行转义, 其他的一些特殊字符几乎不使用, 这样也保留了原始的中文, 看着会比较清晰
                 let imgUrl = '![' + imgName.substring(0, imgName.length - 4) + ']' +
                     '(https://www.github.com/' + remoteRepo +'/raw/master/' +
-                    encodeURI(imageFileRelativePath.replace(/\\/g,"\/")) + ')'
+                    imageFileRelativePath.replace(/\\/g,"\/")
+                        .replace(/\s+/g, "%20") +
+                    ')'
                 editor.edit(textEditorEdit => {
                     textEditorEdit.insert(editor.selection.active, imgUrl)
                 })
