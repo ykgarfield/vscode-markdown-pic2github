@@ -93,7 +93,7 @@ function activate(context) {
                 })
                 let imgUrl = '![' + imgName.substring(0, imgName.length - 4) + ']' +
                     '(https://www.github.com/' + remoteRepo +'/raw/master/' +
-                    imageFileRelativePath.replace(/\\/g,"\/") + ')'
+                    encodeURI(imageFileRelativePath.replace(/\\/g,"\/")) + ')'
                 editor.edit(textEditorEdit => {
                     textEditorEdit.insert(editor.selection.active, imgUrl)
                 })
