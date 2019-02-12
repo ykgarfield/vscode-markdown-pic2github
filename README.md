@@ -23,3 +23,5 @@
 比如 `local_git_folder` 配置为 `E:/git/github/blog`, `remote_github_repo` 配置为 `tom/blog`, `images_folder` 配置为 `images`, 在另外一个仓库 `E:/git/github/blog-article`, 在 `web/css` 目录下有一个名为 `hello.md` 的文件, 上传了一张 `world.png` 的图片, 那么最终图片被拷贝到本地的 `E:/git/github/blog/images/web/css/hello/world.png`, 上传到 github 仓库后的路径为 `https://www.github.com/tom/blog/raw/master/images/web/css/hello/world.png`.
 
 这样图片的存放位置和文章的存放目录可以保持一致.
+
+> 目录和图片名称最好不要带特殊字符, 比如空格之类的, 目前并没有对 github 的图片链接做转义.不转义还是有好处的, 链接看上去一目了然.
